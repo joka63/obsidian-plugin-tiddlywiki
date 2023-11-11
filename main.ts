@@ -1,6 +1,8 @@
 import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
 import * as path from 'path';
 import { convertJSONToTiddlers, convertTiddlersToObsidianMarkdown, writeObsidianMarkdownFiles } from 'services/TiddlyWikiToMarkdownService';
+import { exportAllMarkdownFilesToJSON } from 'services/MarkdownToTiddlyWikiService';
+import { downloadJsonAsFile } from 'utils/downloadJsonAsFile';
 
 export default class TiddlyWikiJsonPlugin extends Plugin {
 	async onload() {
@@ -78,10 +80,9 @@ class TiddlyWikiSettingTab extends PluginSettingTab {
 					//@ts-ignore
 					const basePath = this.app.vault.adapter.basePath
 
-					// const jsonExport = await exportAllMarkdownFilesToJSON(basePath)
+					const jsonExport = await exportAllMarkdownFilesToJSON(basePath)
 
-					// downloadJsonAsFile(jsonExport, "test.json")
-					new Notice(`❌ Export of TiddlyWiki to ${basePath} not yet implemented!`, 10000)
+					downloadJsonAsFile(jsonExport, "test.json")
 				}))
 
 	}
