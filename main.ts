@@ -1,5 +1,6 @@
 import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
 import * as path from 'path';
+import { convertJSONToTiddlers, convertTiddlersToObsidianMarkdown, writeObsidianMarkdownFiles } from 'services/TiddlyWikiToMarkdownService';
 
 export default class TiddlyWikiJsonPlugin extends Plugin {
 	async onload() {
@@ -48,13 +49,11 @@ class TiddlyWikiSettingTab extends PluginSettingTab {
 					//@ts-ignore
 					const exportPath = path.join(this.app.vault.adapter.basePath, directoryPath)
 
-					// const tiddlers = await convertJSONToTiddlers(file);
-					// const obsidianMarkdownArray = convertTiddlersToObsidianMarkdown(tiddlers);
-					// writeObsidianMarkdownFiles(obsidianMarkdownArray, exportPath);
+					const tiddlers = await convertJSONToTiddlers(file);
+					const obsidianMarkdownArray = convertTiddlersToObsidianMarkdown(tiddlers);
+					writeObsidianMarkdownFiles(obsidianMarkdownArray, exportPath);
 
-					console.log(`❌ Import of TiddlyWiki to ${exportPath} not yet implemented!`)
-					new Notice(`❌ Import of TiddlyWiki to ${exportPath} not yet implemented!`, 10000)
-					// new Notice(`✅ Successfuly imported TiddlyWiki to ${exportPath}`, 10000)
+					new Notice(`✅ Successfuly imported TiddlyWiki to ${exportPath}`, 10000)
 				}
 			}
 		})
