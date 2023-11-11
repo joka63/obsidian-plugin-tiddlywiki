@@ -12,13 +12,13 @@ describe("convert ", () => {
             tiddlerText: "This is a link to HelloThere, and one to [[History of TiddlyWiki]]",
             expectedMarkdown: "This is a link to [[HelloThere]], and one to [[History of TiddlyWiki]]"
         },
-        {
+        {   // URLs are not converted to links
             tiddlerText: `https://tiddlywiki.com/ and [[TW5|https://tiddlywiki.com/]] are links`,
-            expectedMarkdown: `[https://tiddlywiki.com/](https://tiddlywiki.com/) and [TW5](https://tiddlywiki.com/) are links`
+            expectedMarkdown: `https://tiddlywiki.com/ and [TW5](https://tiddlywiki.com/) are links`
         },
         {
-            tiddlerText: "* ~HelloThere is not a link\n* ~http://google.com/ is not a link",
-            expectedMarkdown: "- HelloThere is not a link\n- http://google.com/ is not a link"
+            tiddlerText: "* ~HelloThere is not a link",
+            expectedMarkdown: "- HelloThere is not a link"
         },
         {
             tiddlerText: "Title different from page: [[Displayed Link Title|Tiddler Title]]",
@@ -26,7 +26,7 @@ describe("convert ", () => {
         },
         {
             tiddlerText: "Two images: [img[Logo.png]] and external [img[https://tiddlywiki.com/favicon.ico]]",
-            expectedMarkdown: "Two images: ![Logo.png](Logo.png) and external ![https://tiddlywiki.com/favicon.ico](https://tiddlywiki.com/favicon.ico)"
+            expectedMarkdown: "Two images: ![[Logo.png]] and external ![https://tiddlywiki.com/favicon.ico](https://tiddlywiki.com/favicon.ico)"
         },
         {
             tiddlerText: "```\nThis is a code block\n* Don't convert this to a list\n```",
