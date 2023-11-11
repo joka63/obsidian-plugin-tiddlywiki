@@ -100,7 +100,6 @@ export function convertTiddlyWikiToMarkdown(text: string): string {
 
 		// CamelCase Links
 		convertedLine = convertedLine.replace(/(~?)([A-Z][a-z]+[A-Z][A-Za-z]*)/g, (_, p1, p2) => {
-		    console.log(`Matched: ${p1} ${p2}`);
 			if ( p1 === "~" ) return p2;
 			return '@((@' + p2 + '@))@';
 		});
