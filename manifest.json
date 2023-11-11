@@ -1,11 +1,10 @@
 {
 	"id": "obsidian-plugin-tiddlywiki",
 	"name": "TiddlyWiki JSON",
-	"version": "1.0.0",
+	"version": "1.0.4",
 	"minAppVersion": "0.15.0",
 	"description": "Import and export TiddlyWiki JSON files. Enhanced version of Lucas Bordeau's version.",
 	"author": "Joachim Katzer",
 	"authorUrl": "https://github.com/joka63",
-	"fundingUrl": "https://obsidian.md/pricing",
 	"isDesktopOnly": true
 }
