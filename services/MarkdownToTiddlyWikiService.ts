@@ -80,7 +80,27 @@ export function extractTagsFromMarkdownText(text: string): { tags: string[], new
 	return { tags: [...new Set(tags)], newText };
 }
 
+/**
+ * Converts a markdown string to a TiddlyWiki string.
+ * See the tests in tests/MarkdownToTiddlyWiki.test.ts for examples
+ * @param text  content of a markdown file
+ * @returns the content of the file converted to TiddlyWiki
+ */
 export function convertMarkdownToTiddlyWiki(text: string): string {
+	// Don't convert text in code blocks, surrounded by ```
+	let is_in_code_block = true;
+	let twText = text.split(/```[a-z]*\n/).map((block) => {
+		is_in_code_block = !is_in_code_block;
+		if (is_in_code_block) {
+			return block;
+		} else {
+			return convertMarkdownNotInACodeBlockToTiddlyWiki(block);
+		}
+	}).join('```\n');
+	return twText;
+}
+
+function convertMarkdownNotInACodeBlockToTiddlyWiki(text: string): string {
 	let twText = text;
 
 	// Replace Headings
