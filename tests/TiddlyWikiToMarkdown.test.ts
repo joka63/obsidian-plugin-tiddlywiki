@@ -28,8 +28,8 @@ export const markdownTestData: TiddlyToMarkdownTestData[] = [
         expectedMarkdown: "Two images: ![[Logo.png]] and external ![https://tiddlywiki.com/favicon.ico](https://tiddlywiki.com/favicon.ico)"
     },
     {
-        tiddlerText: "```\nThis is a code block\n* Don't convert this to a list\n```",
-        expectedMarkdown: "```\nThis is a code block\n* Don't convert this to a list\n```"
+        tiddlerText: "```\nThis is a code block\n* Don't convert this to a list\n# A Comment\n! Not a header\n```",
+        expectedMarkdown: "```\nThis is a code block\n* Don't convert this to a list\n# A Comment\n! Not a header\n```",
     },
     {
         tiddlerText: `! This is a level 1 heading\n!! This is a level 2 heading`,
