@@ -89,19 +89,22 @@ export function extractTagsFromMarkdownText(text: string): { tags: string[], new
 export function convertMarkdownToTiddlyWiki(text: string): string {
 	// Don't convert text in code blocks, surrounded by ```
 	let is_in_code_block = true;
-	let twText = text.split(/```[a-z]*\n/).map((block) => {
+	let twText = text.split(/```/).map((block) => {
 		is_in_code_block = !is_in_code_block;
 		if (is_in_code_block) {
 			return block;
 		} else {
 			return convertMarkdownNotInACodeBlockToTiddlyWiki(block);
 		}
-	}).join('```\n');
+	}).join('```');
 	return twText;
 }
 
 function convertMarkdownNotInACodeBlockToTiddlyWiki(text: string): string {
 	let twText = text;
+
+	// Replace Bold - convert **bold** to ''bold'' before converting unordered list items
+	twText = twText.replace(/\*\*([^*]+)\*\*/g, "''$1''");
 
 	// Replace Headings
 	twText = twText.replace(/^#+\s+(.*)$/gm, (match, p1) => {
@@ -133,10 +136,20 @@ function convertMarkdownNotInACodeBlockToTiddlyWiki(text: string): string {
 	// Protect CamelCase words
 	twText = twText.replace(/([A-Z][a-z]+[A-Z][A-Za-z]*)/g, "~$1");
 
-	// Replace Internal Links
+	// Replace Internal Links without display text
 	twText = twText.replace(/(!?)\[\[([^\]]+)\]\]/g, (match, p0, p1) => {
-		const linkElement1 = p1.replace('~', '')
+		p1 = p1.replace('~', '')
 		const optImg = p0 === '!' ? 'img' : '';
+		const linkRegex = /((?:[^\[\]|\\]|\\.)+)(?:\|((?:[^\[\]|\\]|\\.)+))?/;
+		const linkMatch = linkRegex.exec(p1);
+		let linkElement1, description: string; 
+		if (linkMatch === null) {
+			linkElement1 = p1;
+			description = '';
+		} else {
+			linkElement1 = linkMatch[1];
+			description = linkMatch[2] ? linkMatch[2] : '';
+		}
 
 		// CamelCase links
 		if ( linkElement1.match(/^([A-Z][a-z]+[A-Z][A-Za-z]*)$/g) ) {
@@ -144,7 +157,8 @@ function convertMarkdownNotInACodeBlockToTiddlyWiki(text: string): string {
 		}
 
 		// Remove leading | character if there is no description
-		return `[${optImg}[${linkElement1}]]`;
+		if (description === '') return `[${optImg}[${linkElement1}]]`;
+		return `[${optImg}[${description}|${linkElement1}]]`;
 	});
 
 	// Replace External Links
@@ -158,9 +172,6 @@ function convertMarkdownNotInACodeBlockToTiddlyWiki(text: string): string {
 			return `[${optImg}[${linkLabel}|${linkElement1}]]`;
 		}
 	});
-
-	// Replace Bold
-	twText = twText.replace(/\*\*([^*]+)\*\*/g, "''$1''");
 
 	// Replace Italic
 	twText = twText.replace(/(\b|[^\\])_(\S|\S.*?\S)_(\b|[^\\])/g, "$1//$2//$3");
