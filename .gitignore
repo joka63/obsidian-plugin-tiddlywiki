@@ -19,6 +19,9 @@ main.js
 # obsidian
 data.json
 
+# Ohm Parser Generator
+*.ohm-bundle.*
+
 # Exclude macOS Finder (System Explorer) View States
 .DS_Store
 
