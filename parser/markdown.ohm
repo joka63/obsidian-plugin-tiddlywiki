@@ -1,9 +1,15 @@
-TiddlyWikiMarkdown {
+Markdown {
     block = para*
     para = bold | italic | strike | code | plain
-    plain = ( ~( "''" | "`" | "//" | "~~" ) any)+
-    bold = "''" 
-    italic = "//" 
+    plain = ( ~( "**" | "`" | "_" | "~~" ) any)+
+    bold = "**" 
+    italic = "_" 
     strike = "~~" 
     code = "`" (~"`" any)* "`"
+}
+
+TiddlyWikiMarkdown <: Markdown {
+    bold := "''" 
+    italic := "//" 
+    plain := ( ~( "''" | "`" | "//" | "~~" ) any)+
 }

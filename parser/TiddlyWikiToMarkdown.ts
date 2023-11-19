@@ -1,6 +1,6 @@
 import grammar, {TiddlyWikiMarkdownSemantics} from './markdown.ohm-bundle';
 
-const semantics: TiddlyWikiMarkdownSemantics = grammar.createSemantics();
+const semantics: TiddlyWikiMarkdownSemantics = grammar.TiddlyWikiMarkdown.createSemantics();
 
 semantics.addOperation<string>('markdown()', {
     _terminal() {
@@ -19,7 +19,7 @@ semantics.addOperation<string>('markdown()', {
 });
 
 export function convertTiddlyWikiToMarkdown(text: string): string {
-    const matchResult = grammar.match(text);
+    const matchResult = grammar.TiddlyWikiMarkdown.match(text);
     if (matchResult.failed()) {
         return `failed to parse: ${text}`;
     } else {
