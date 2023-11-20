@@ -1,3 +1,32 @@
+/**
+In the first phase, lines of input are consumed and the block structure of the document—its division 
+into paragraphs, block quotes, list items, and so on—is constructed. 
+Text is assigned to these blocks but not parsed. 
+Link reference definitions are parsed and a map of links is constructed.
+**/
+MarkdownBlocks {
+    document = block*
+    block = block_quote | line_quote | list | paragraph | code_block | heading | blank
+    code_block = "```" ("a".."z" | "-")* nl (~"```" any)* "```"
+    inner_block = block_quote | list_item | paragraph 
+    line_quote = ">" sp+ inner_block+ 
+    block_quote = "<<<???" sp* nl paragraph nl "<<<???"  
+    list = list_item+
+    list_item = bullet_item | ordered_item
+    bullet_item = (sp* "-" sp+) paragraph   
+    ordered_item = (sp* digit+ "." sp+) paragraph
+    heading = "#"+ sp+ (~nl any)+ nl
+    paragraph = rest continuation_line* -- para
+                | endline  -- last
+    nl = "\\n"   // new line
+    sp = " " | "\t"
+    blank = sp* nl  // blank line has only newline
+    endline = (~nl any)+ end
+    continuation_line = sp* ~("-" | digit+ "." | ">" | blank) any+ nl
+    line = (~nl any)+ nl  // line has at least one letter
+    rest = (~nl any)* nl  // everything to the end of the line
+}
+
 Markdown {
     block = para*
     para = bold | italic | strike | code | plain
@@ -6,6 +35,14 @@ Markdown {
     italic = "_" 
     strike = "~~" 
     code = "`" (~"`" any)* "`"
+}
+
+TiddlyWikiBlocks <: MarkdownBlocks {
+    block_quote := "<<<" sp* nl paragraph nl "<<<"  
+    line_quote := ">???" sp+ inner_block+ 
+    heading := "!"+ sp+ (~nl any)+ nl
+    bullet_item := (sp* "*"+ sp+) paragraph   
+    ordered_item := (sp* "#"+ sp+) paragraph   
 }
 
 TiddlyWikiMarkdown <: Markdown {
