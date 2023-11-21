@@ -12,9 +12,9 @@ MarkdownBlocks {
     line_quote = ">" sp+ inner_block+ 
     block_quote = "<<<???" sp* nl paragraph nl "<<<???"  
     list = list_item+
-    list_item = bullet_item | ordered_item
+    list_item = bullet_item | numbered_item
     bullet_item = (sp* "-" sp+) paragraph   
-    ordered_item = (sp* digit+ "." sp+) paragraph
+    numbered_item = (sp* digit+ "." sp+) paragraph
     heading = "#"+ sp+ (~nl any)+ nl
     paragraph = rest continuation_line* -- para
                 | endline  -- last
@@ -28,25 +28,38 @@ MarkdownBlocks {
 }
 
 Markdown {
-    block = para*
-    para = bold | italic | strike | code | plain
-    plain = ( ~( "**" | "`" | "_" | "~~" ) any)+
+    paragraph = chunk*
+    chunk = markup | punct | sps | nl | word | number | any
+    word = letter+
+    number = digit+
+    punct = "." | "," | "!" | "?" | "'" | "\"" | "-" | ":" | ";" | "=" | "+" | "&" | "@" | "%" | "^" 
+    markup = bold | italic | strike | code | link 
+    link = wikilink | extlink | emblink
+    wikilink = "[[" (~"]]" ~"|" any)+ ("|" (~"]]" any)+)? "]]"
+    extlink = "[" (~"]" any)+ "](" (~")" any)+ ")"
+    emblink = "!" link
     bold = "**" 
     italic = "_" 
     strike = "~~" 
     code = "`" (~"`" any)* "`"
+    sp = " " | "\t"
+    sps = sp+
+    nl = "\\n"   // new line
 }
 
 TiddlyWikiBlocks <: MarkdownBlocks {
     block_quote := "<<<" sp* nl paragraph nl "<<<"  
     line_quote := ">???" sp+ inner_block+ 
     heading := "!"+ sp+ (~nl any)+ nl
+    list_item := bullet_item | ordered_item
     bullet_item := (sp* "*"+ sp+) paragraph   
-    ordered_item := (sp* "#"+ sp+) paragraph   
+    ordered_item = (sp* "#"+ sp+) paragraph   
 }
 
 TiddlyWikiMarkdown <: Markdown {
+    link := wikilink | camel_case_link | imglink
     bold := "''" 
     italic := "//" 
-    plain := ( ~( "''" | "`" | "//" | "~~" ) any)+
+    imglink = "[img[" (~"]]" any)+ "]]"
+    camel_case_link = upper lower+ upper letter*
 }

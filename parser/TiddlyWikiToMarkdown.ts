@@ -1,4 +1,5 @@
 import grammar, {TiddlyWikiBlocksSemantics, TiddlyWikiMarkdownSemantics} from './markdown.ohm-bundle';
+const toAST = require('ohm-js/extras').toAST;
 
 const block_semantics: TiddlyWikiBlocksSemantics = grammar.TiddlyWikiBlocks.createSemantics();
 const line_semantics: TiddlyWikiMarkdownSemantics = grammar.TiddlyWikiMarkdown.createSemantics();
@@ -50,12 +51,38 @@ line_semantics.addOperation<string>('markdown()', {
         return this.sourceString;
     },
     _iter(...children) { return children.map(c => c.markdown()).join(''); },
-    plain(a) {
-      return a.children.map(c => c.markdown()).join('');
+    paragraph(a) { return a.children.map(c => c.markdown()).join(''); },
+    chunk(a) { return a.markdown(); },
+    word(a) { return a.children.map(c => c.markdown()).join(''); },
+    number(a) { return a.children.map(c => c.markdown()).join(''); },
+    punct(a) { return a.sourceString; },
+    markup(a) { return a.markdown(); },
+    link(a) { return a.markdown(); },
+    wikilink(_0, a1, _2, a3, _4) { 
+        if ( a3.children.length > 0 ) {
+            let linkText = a3.children.map(c => c.markdown()).join('');
+            let displayText = a1.children.map(c => c.markdown()).join('');
+            return `[[${displayText}|${linkText}]]`;
+        } else {
+            let linkText = a1.children.map(c => c.markdown()).join('');
+            return `[[${linkText}]]`;
+        }
     },
-    bold(a) { return "**"; },
+    extlink(_0, a1, _2, a3, _4) {
+        let linkText = a1.children.map(c => c.markdown()).join('');
+        let displayText = a3.children.map(c => c.markdown()).join('');
+        return `[${displayText}](${linkText})`;
+    },
+    bold(a) { console.log('###BOLD'); return "**"; },
     italic(a) { return "_"; },
     strike(a) { return "~~"; },
+    camel_case_link(a1, a2, a3, a4) { 
+      let u1 = a1.sourceString;
+      let l1 = a2.children.map(c => c.markdown()).join('');
+      let u2 = a3.sourceString;
+      let w2 = a4.children.map(c => c.markdown()).join('');
+      return `[[${u1}${l1}${u2}${w2}]]`;
+    },
     code(_1, a, _2) {
       return `\`${a.children.map(c => c.markdown()).join('')}\``;
     },
@@ -63,9 +90,12 @@ line_semantics.addOperation<string>('markdown()', {
 
 export function convertTiddlyWikiLineToMarkdown(text: string): string {
     const matchResult = grammar.TiddlyWikiMarkdown.match(text);
+    //console.log(grammar.TiddlyWikiMarkdown.trace(text).toString());
     if (matchResult.failed()) {
-        return `failed to parse: ${text}`;
+        return `failed to parse: ${matchResult.message}`;
     } else {
+        const ast = toAST(matchResult);
+        console.log(`LINE ${text} --> ${ast}`)
         return line_semantics(matchResult).markdown();
     }
 }
@@ -73,9 +103,10 @@ export function convertTiddlyWikiLineToMarkdown(text: string): string {
 export function convertTiddlyWikiToMarkdown(text: string): string {
     const matchResult = grammar.TiddlyWikiBlocks.match(text);
     if (matchResult.failed()) {
-        console.log(grammar.TiddlyWikiBlocks.trace(text).toString())
-        return `failed to parse: ${text}`;
+        return `failed to parse: ${matchResult.message}`;
     } else {
+        const ast = toAST(matchResult);
+        console.log(`BLOCK ${text} --> ${ast}`)
         return block_semantics(matchResult).markdown();
     }
 }
