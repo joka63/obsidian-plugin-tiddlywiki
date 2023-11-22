@@ -60,9 +60,13 @@ line_semantics.addOperation<string>('markdown()', {
     link(a) { return a.markdown(); },
     wikilink(_0, a1, _2, a3, _4) { 
         if ( a3.children.length > 0 ) {
-            let linkText = a3.children.map(c => c.markdown()).join('');
             let displayText = a1.children.map(c => c.markdown()).join('');
-            return `[[${displayText}|${linkText}]]`;
+            let linkText = a3.children.map(c => c.markdown()).join('');
+            if ( linkText.includes('://') ) {
+                console.log(`TM WIKILINK: linktext=${linkText} displayText=${displayText}`)
+                return `[${displayText}](${linkText})`;
+            }
+            return `[[${linkText}|${displayText}]]`;
         } else {
             let linkText = a1.children.map(c => c.markdown()).join('');
             return `[[${linkText}]]`;
@@ -71,7 +75,11 @@ line_semantics.addOperation<string>('markdown()', {
     extlink(_0, a1, _2, a3, _4) {
         let linkText = a1.children.map(c => c.markdown()).join('');
         let displayText = a3.children.map(c => c.markdown()).join('');
+        console.log(`TM EXTLINK: linktext=${linkText} displayText=${displayText}`)
         return `[${displayText}](${linkText})`;
+    },
+    autolink(a0, a1, a2) {
+        return `${a0.sourceString}${a1.sourceString}${a2.children.map(c => c.markdown()).join('')}`;
     },
     bold(a) { console.log('###BOLD'); return "**"; },
     italic(a) { return "_"; },

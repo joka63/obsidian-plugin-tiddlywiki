@@ -34,9 +34,7 @@ block_semantics.addOperation<string>('tiddler()', {
             + a1.children.map(c => c.tiddler()).join('') 
             + a2.tiddler();    
     },
-    paragraph(a0) { 
-        return convertMarkdownLineToTiddlyWiki(a0.tiddler()); 
-    },
+    paragraph(a0) { return a0.tiddler(); },
     paragraph_last(a0) { 
         return convertMarkdownLineToTiddlyWiki(a0.tiddler()); 
     },
@@ -65,12 +63,22 @@ line_semantics.addOperation<string>('tiddler()', {
         let linkText = a1.children.map(c => c.tiddler()).join('');
         if ( a3.children.length > 0 ) {
             let displayText = a3.children.map(c => c.tiddler()).join('');
+            console.log(`MT WIKILINK: linktext=${linkText} displayText=${displayText}`)
             return `[[${displayText}|${linkText}]]`;
         } else if ( linkText.match(/^([A-Z][a-z]+[A-Z][A-Za-z]*)$/g) ) {
             return `${linkText}`;
         } else {
             return `[[${linkText}]]`;
         }
+    },
+    extlink(_0, a1, _2, a3, _4) { 
+        console.log(`MT EXTLINK ${a1.children.map(c => c.tiddler()).join('')}`)
+        let displayText = a1.children.map(c => c.tiddler()).join('');
+        let linkText = a3.children.map(c => c.tiddler()).join('');
+        return `[[${displayText}|${linkText}]]`;
+    },
+    autolink(a0, a1, a2) {
+        return `${a0.sourceString}${a1.sourceString}${a2.children.map(c => c.tiddler()).join('')}`;
     },
     code(_1, a, _2) {
       return `\`${a.children.map(c => c.tiddler()).join('')}\``;

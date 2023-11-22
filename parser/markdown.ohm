@@ -34,10 +34,11 @@ Markdown {
     number = digit+
     punct = "." | "," | "!" | "?" | "'" | "\"" | "-" | ":" | ";" | "=" | "+" | "&" | "@" | "%" | "^" 
     markup = bold | italic | strike | code | link 
-    link = wikilink | extlink | emblink
+    link = wikilink | extlink | emblink | autolink
     wikilink = "[[" (~"]]" ~"|" any)+ ("|" (~"]]" any)+)? "]]"
     extlink = "[" (~"]" any)+ "](" (~")" any)+ ")"
     emblink = "!" link
+    autolink = ("http:" | "https:") "//" (~sp ~nl any)+    
     bold = "**" 
     italic = "_" 
     strike = "~~" 
@@ -57,7 +58,7 @@ TiddlyWikiBlocks <: MarkdownBlocks {
 }
 
 TiddlyWikiMarkdown <: Markdown {
-    link := wikilink | camel_case_link | imglink
+    link := wikilink | camel_case_link | imglink | autolink
     bold := "''" 
     italic := "//" 
     imglink = "[img[" (~"]]" any)+ "]]"
