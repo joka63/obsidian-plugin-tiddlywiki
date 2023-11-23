@@ -5,10 +5,9 @@ const block_semantics: MarkdownBlocksSemantics = grammar.MarkdownBlocks.createSe
 const line_semantics: MarkdownSemantics = grammar.Markdown.createSemantics();
 
 block_semantics.addOperation<string>('tiddler()', {
-    _terminal() {
-        return this.sourceString;
-    },
+    _terminal() { return this.sourceString; },
     _iter(...children) { return children.map(c => c.tiddler()).join(''); },
+    _nonterminal(...children) { return children.map(c => c.tiddler()).join(''); },
     document(a) { return a.children.map(c => c.tiddler()).join(''); },
     block(a) { return a.children.map(c => c.tiddler()).join(''); },
     code_block(a0, a1, a2, a3, a4) { return a0.tiddler() + a1.tiddler() + a2.tiddler() + a3.tiddler() + a4.tiddler(); },
@@ -46,14 +45,19 @@ block_semantics.addOperation<string>('tiddler()', {
 
 
 line_semantics.addOperation<string>('tiddler()', {
-    _terminal() {
-        return this.sourceString;
-    },
+    _terminal() { return this.sourceString; },
     _iter(...children) { return children.map(c => c.tiddler()).join(''); },
+    _nonterminal(...children) { return children.map(c => c.tiddler()).join(''); },
     paragraph(a) { return a.children.map(c => c.tiddler()).join(''); },
     chunk(a) { return a.tiddler(); },
     markup(a) { return a.tiddler(); },
-    word(a) { return a.children.map(c => c.tiddler()).join(''); },
+    word(a) { 
+        let word = a.children.map(c => c.tiddler()).join('');
+        if ( word.match(/^([A-Z][a-z]+[A-Z][A-Za-z]*)$/g) ) {
+            return `~${word}`;
+        }
+        return word
+    },
     number(a) { return a.children.map(c => c.tiddler()).join(''); },
     punct(a) { return a.tiddler(); },
     bold(a) { return "''"; },
@@ -63,7 +67,6 @@ line_semantics.addOperation<string>('tiddler()', {
         let linkText = a1.children.map(c => c.tiddler()).join('');
         if ( a3.children.length > 0 ) {
             let displayText = a3.children.map(c => c.tiddler()).join('');
-            console.log(`MT WIKILINK: linktext=${linkText} displayText=${displayText}`)
             return `[[${displayText}|${linkText}]]`;
         } else if ( linkText.match(/^([A-Z][a-z]+[A-Z][A-Za-z]*)$/g) ) {
             return `${linkText}`;
@@ -72,11 +75,29 @@ line_semantics.addOperation<string>('tiddler()', {
         }
     },
     extlink(_0, a1, _2, a3, _4) { 
-        console.log(`MT EXTLINK ${a1.children.map(c => c.tiddler()).join('')}`)
         let displayText = a1.children.map(c => c.tiddler()).join('');
         let linkText = a3.children.map(c => c.tiddler()).join('');
         return `[[${displayText}|${linkText}]]`;
     },
+    emblink(_0, a1) { return a1.tiddler(); },
+    emb_wikilink(_0, a1, _2, a3, _4) { 
+        let linkText = a1.children.map(c => c.tiddler()).join('');
+        if ( a3.children.length > 0 ) {
+            let displayText = a3.children.map(c => c.tiddler()).join('');
+            return `[img[${displayText}|${linkText}]]`;
+        } else {
+            return `[img[${linkText}]]`;
+        }
+    },
+    emb_extlink(_0, a1, _2, a3, _4) { 
+        let displayText = a1.children.map(c => c.tiddler()).join('');
+        let linkText = a3.children.map(c => c.tiddler()).join('');
+        if ( displayText === linkText || displayText === '') {
+            return `[img[${linkText}]]`;
+        } else {
+            return `[img[${displayText}|${linkText}]]`;
+        }
+    },    
     autolink(a0, a1, a2) {
         return `${a0.sourceString}${a1.sourceString}${a2.children.map(c => c.tiddler()).join('')}`;
     },
@@ -92,7 +113,7 @@ export function convertMarkdownLineToTiddlyWiki(text: string): string {
     if (matchResult.failed()) {
         return `failed to parse: ${matchResult.message}`;
     } else {
-        console.log(`LINE ${text} --> ${JSON.stringify(toAST(matchResult))}`)
+        // console.log(`LINE ${text} --> ${JSON.stringify(toAST(matchResult))}`)
         return line_semantics(matchResult).tiddler();
     }
 }
@@ -102,7 +123,7 @@ export function convertMarkdownToTiddlyWiki(text: string): string {
     if (matchResult.failed()) {
         return `failed to parse: ${matchResult.message}`;
     } else {
-        console.log(`BLOCK ${text} --> ${JSON.stringify(toAST(matchResult))}`)
+        // console.log(`BLOCK ${text} --> ${JSON.stringify(toAST(matchResult))}`)
         return block_semantics(matchResult).tiddler();
     }
 }

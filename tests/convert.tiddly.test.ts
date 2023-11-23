@@ -20,21 +20,36 @@ export const markdownTestData: TiddlyToMarkdownTestData[] = [
     {   label: "Distinguish between internal links with display text and external links",
         tiddlerText: `[[How to build a funnel 20/80|Funnel]]\nSee [[Internal Links|https://help.obsidian.md/Linking+notes+and+files/Internal+links]]`,
         expectedMarkdown: `[[Funnel|How to build a funnel 20/80]]\nSee [Internal Links](https://help.obsidian.md/Linking+notes+and+files/Internal+links)`
-    }
-
+    },
+    {   label: "Beware of CamelCase links in URLs",
+        tiddlerText: `[[Tips|https://wiki.centos.org/TipsAndTricks/SelinuxBooleans]]\nhttps://wiki.centos.org/TipsAndTricks/SelinuxBooleans`,
+        expectedMarkdown: `[Tips](https://wiki.centos.org/TipsAndTricks/SelinuxBooleans)\nhttps://wiki.centos.org/TipsAndTricks/SelinuxBooleans`,
+    },
+    {   label: "Suppressed CamelCase links",
+        tiddlerText: "Not a link: ~HelloThere is not a link",
+        expectedMarkdown: "Not a link: HelloThere is not a link"
+    },
+    {   label: "Display text in links",
+        tiddlerText: "Title different from page: [[Displayed Link Title|Tiddler Title]]",
+        expectedMarkdown: "Title different from page: [[Tiddler Title|Displayed Link Title]]"
+    },
+    {   label: "Images",
+        tiddlerText: "Two images: [img[Logo.png]] and external [img[https://tiddlywiki.com/favicon.ico]]",
+        expectedMarkdown: "Two images: ![[Logo.png]] and external ![https://tiddlywiki.com/favicon.ico](https://tiddlywiki.com/favicon.ico)"
+    },
 ];
 
 describe("convert", () => {
     it.each<TiddlyToMarkdownTestData>(markdownTestData)("TiddlyWiki to Markdown: $label", ({tiddlerText, expectedMarkdown}) => {
         const convertedMarkdown = convertTiddlyWikiToMarkdown(tiddlerText);
-        console.log(`TM ${tiddlerText}:\n---\n${JSON.stringify(convertedMarkdown, null, 2)}`);
+        // console.log(`TM ${tiddlerText}:\n---\n${JSON.stringify(convertedMarkdown, null, 2)}`);
         expect(typeof convertedMarkdown).toEqual('string');
         expect(convertedMarkdown).toEqual(expectedMarkdown);
     })
 
     it.each<TiddlyToMarkdownTestData>(markdownTestData)("Markdown to TiddlyWiki: $label", ({tiddlerText, expectedMarkdown}) => {
         const convertedMarkdown = convertMarkdownToTiddlyWiki(expectedMarkdown);
-        console.log(`MT ${expectedMarkdown}:\n---\n${JSON.stringify(convertedMarkdown, null, 2)}`);
+        // console.log(`MT ${expectedMarkdown}:\n---\n${JSON.stringify(convertedMarkdown, null, 2)}`);
         expect(typeof convertedMarkdown).toEqual('string');
         expect(convertedMarkdown).toEqual(tiddlerText);
     })

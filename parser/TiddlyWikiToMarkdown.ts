@@ -5,10 +5,9 @@ const block_semantics: TiddlyWikiBlocksSemantics = grammar.TiddlyWikiBlocks.crea
 const line_semantics: TiddlyWikiMarkdownSemantics = grammar.TiddlyWikiMarkdown.createSemantics();
 
 block_semantics.addOperation<string>('markdown()', {
-    _terminal() {
-        return this.sourceString;
-    },
+    _terminal() { return this.sourceString; },
     _iter(...children) { return children.map(c => c.markdown()).join(''); },
+    _nonterminal(...children) { return children.map(c => c.markdown()).join(''); },
     document(a) { return a.children.map(c => c.markdown()).join(''); },
     block(a) { return a.children.map(c => c.markdown()).join(''); },
     code_block(a0, a1, a2, a3, a4) { return a0.markdown() + a1.markdown() + a2.markdown() + a3.markdown() + a4.markdown(); },
@@ -47,10 +46,9 @@ block_semantics.addOperation<string>('markdown()', {
   })
 
 line_semantics.addOperation<string>('markdown()', {
-    _terminal() {
-        return this.sourceString;
-    },
+    _terminal() { return this.sourceString; },
     _iter(...children) { return children.map(c => c.markdown()).join(''); },
+    _nonterminal(...children) { return children.map(c => c.markdown()).join(''); },
     paragraph(a) { return a.children.map(c => c.markdown()).join(''); },
     chunk(a) { return a.markdown(); },
     word(a) { return a.children.map(c => c.markdown()).join(''); },
@@ -63,7 +61,6 @@ line_semantics.addOperation<string>('markdown()', {
             let displayText = a1.children.map(c => c.markdown()).join('');
             let linkText = a3.children.map(c => c.markdown()).join('');
             if ( linkText.includes('://') ) {
-                console.log(`TM WIKILINK: linktext=${linkText} displayText=${displayText}`)
                 return `[${displayText}](${linkText})`;
             }
             return `[[${linkText}|${displayText}]]`;
@@ -75,15 +72,21 @@ line_semantics.addOperation<string>('markdown()', {
     extlink(_0, a1, _2, a3, _4) {
         let linkText = a1.children.map(c => c.markdown()).join('');
         let displayText = a3.children.map(c => c.markdown()).join('');
-        console.log(`TM EXTLINK: linktext=${linkText} displayText=${displayText}`)
         return `[${displayText}](${linkText})`;
     },
     autolink(a0, a1, a2) {
         return `${a0.sourceString}${a1.sourceString}${a2.children.map(c => c.markdown()).join('')}`;
     },
-    bold(a) { console.log('###BOLD'); return "**"; },
+    bold(a) { return "**"; },
     italic(a) { return "_"; },
     strike(a) { return "~~"; },
+    imglink(_0, a1, _2) {
+        let linkText = a1.children.map(c => c.markdown()).join('');
+        if ( linkText.includes('://') ) {
+            return `![${linkText}](${linkText})`;
+        } 
+        return `![[${linkText}]]`;
+    },
     camel_case_link(a1, a2, a3, a4) { 
       let u1 = a1.sourceString;
       let l1 = a2.children.map(c => c.markdown()).join('');
@@ -91,6 +94,7 @@ line_semantics.addOperation<string>('markdown()', {
       let w2 = a4.children.map(c => c.markdown()).join('');
       return `[[${u1}${l1}${u2}${w2}]]`;
     },
+    esc_camel_case_link(_0, a1) { return a1.sourceString; },
     code(_1, a, _2) {
       return `\`${a.children.map(c => c.markdown()).join('')}\``;
     },
@@ -103,7 +107,7 @@ export function convertTiddlyWikiLineToMarkdown(text: string): string {
         return `failed to parse: ${matchResult.message}`;
     } else {
         const ast = toAST(matchResult);
-        console.log(`LINE ${text} --> ${ast}`)
+        //console.log(`LINE ${text} --> ${ast}`)
         return line_semantics(matchResult).markdown();
     }
 }
@@ -114,7 +118,7 @@ export function convertTiddlyWikiToMarkdown(text: string): string {
         return `failed to parse: ${matchResult.message}`;
     } else {
         const ast = toAST(matchResult);
-        console.log(`BLOCK ${text} --> ${ast}`)
+        //console.log(`BLOCK ${text} --> ${ast}`)
         return block_semantics(matchResult).markdown();
     }
 }

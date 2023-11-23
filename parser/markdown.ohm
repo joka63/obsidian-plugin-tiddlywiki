@@ -37,7 +37,9 @@ Markdown {
     link = wikilink | extlink | emblink | autolink
     wikilink = "[[" (~"]]" ~"|" any)+ ("|" (~"]]" any)+)? "]]"
     extlink = "[" (~"]" any)+ "](" (~")" any)+ ")"
-    emblink = "!" link
+    emblink = "!" (emb_wikilink | emb_extlink)
+    emb_wikilink = "[[" (~"]]" ~"|" any)+ ("|" (~"]]" any)+)? "]]"
+    emb_extlink = "[" (~"]" any)+ "](" (~")" any)+ ")"
     autolink = ("http:" | "https:") "//" (~sp ~nl any)+    
     bold = "**" 
     italic = "_" 
@@ -58,9 +60,10 @@ TiddlyWikiBlocks <: MarkdownBlocks {
 }
 
 TiddlyWikiMarkdown <: Markdown {
-    link := wikilink | camel_case_link | imglink | autolink
+    link := wikilink | esc_camel_case_link | camel_case_link |  imglink | autolink
     bold := "''" 
     italic := "//" 
     imglink = "[img[" (~"]]" any)+ "]]"
     camel_case_link = upper lower+ upper letter*
+    esc_camel_case_link = "~" camel_case_link
 }
