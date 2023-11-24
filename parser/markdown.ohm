@@ -1,0 +1,69 @@
+/**
+In the first phase, lines of input are consumed and the block structure of the document—its division 
+into paragraphs, block quotes, list items, and so on—is constructed. 
+Text is assigned to these blocks but not parsed. 
+Link reference definitions are parsed and a map of links is constructed.
+**/
+MarkdownBlocks {
+    document = block*
+    block = code_block | quote | list | heading | blank | paragraph
+    code_block = "```" ("a".."z" | "-")* nl (~"```" any)* "```"
+    inner_block = line_quote | list_item | paragraph 
+    quote = line_quote+
+    line_quote = ">" sp+ inner_block 
+    list = list_item+
+    list_item = bullet_item | numbered_item
+    bullet_item = (sp* "-" sp+) paragraph   
+    numbered_item = (sp* digit+ "." sp+) paragraph
+    heading = "#"+ sp+ paragraph
+    paragraph = rest continuation_line* -- para
+                | endline  -- last
+    nl = "\n"   // new line
+    sp = " " | "\t"
+    blank = sp* nl  // blank line has only newline
+    endline = (~nl any)+ end
+    continuation_line = sp* ~("-" | digit+ "." | ">" | blank) any+ nl
+    line = (~nl any)+ nl  // line has at least one letter
+    rest = (~nl any)* nl  // everything to the end of the line
+}
+
+Markdown {
+    paragraph = chunk*
+    chunk = markup | punct | sps | nl | word | number | any
+    word = letter+
+    number = digit+
+    punct = "." | "," | "!" | "?" | "'" | "\"" | "-" | ":" | ";" | "=" | "+" | "&" | "@" | "%" | "^" 
+    markup = bold | italic | strike | code | link 
+    link = wikilink | extlink | emblink | autolink
+    wikilink = "[[" (~"]]" ~"|" any)+ ("|" (~"]]" any)+)? "]]"
+    extlink = "[" (~"]" any)+ "](" (~")" any)+ ")"
+    emblink = "!" (emb_wikilink | emb_extlink)
+    emb_wikilink = "[[" (~"]]" ~"|" any)+ ("|" (~"]]" any)+)? "]]"
+    emb_extlink = "[" (~"]" any)+ "](" (~")" any)+ ")"
+    autolink = ("http:" | "https:") "//" (~sp ~nl any)+    
+    bold = "**" 
+    italic = "_" 
+    strike = "~~" 
+    code = "`" (~"`" any)* "`"
+    sp = " " | "\t"
+    sps = sp+
+    nl = "\n"   // new line
+}
+
+TiddlyWikiBlocks <: MarkdownBlocks {
+    block := code_block | block_quote | list | heading | blank | paragraph
+    block_quote = "<<<" sp* nl paragraph (~"<<<" paragraph)* "<<<"  
+    heading := "!"+ sp+ paragraph
+    list_item := bullet_item | ordered_item
+    bullet_item := (sp* "*"+ sp+) paragraph   
+    ordered_item = (sp* "#"+ sp+) paragraph   
+}
+
+TiddlyWikiMarkdown <: Markdown {
+    link := wikilink | esc_camel_case_link | camel_case_link |  imglink | autolink
+    bold := "''" 
+    italic := "//" 
+    imglink = "[img[" (~"]]" any)+ "]]"
+    camel_case_link = upper lower+ upper letter*
+    esc_camel_case_link = "~" camel_case_link
+}
