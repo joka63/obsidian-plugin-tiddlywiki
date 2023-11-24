@@ -100,14 +100,35 @@ line_semantics.addOperation<string>('markdown()', {
     },
 });
 
+block_semantics.addOperation<string>('ast()', {
+    _terminal() { return this.sourceString; },
+    _iter(...children) { return children.map(c => c.ast()).join(''); },
+    _nonterminal(...children) { 
+        if ( ['any', 'upper', 'lower', 'sp', 'sps', 'letter', 'punct', 'chunk'].includes(this.ctorName) ) {
+            return children.map(c => c.ast()).join('');
+        }
+        return `{${this.ctorName}: ${children.map(c => c.ast()).join('')}}`; 
+    },
+})
+
+line_semantics.addOperation<string>('ast()', {
+    _terminal() { return this.sourceString; },
+    _iter(...children) { return children.map(c => c.ast()).join(''); },
+    _nonterminal(...children) { 
+        if ( ['any', 'upper', 'lower', 'sp', 'sps', 'letter', 'punct', 'chunk'].includes(this.ctorName) ) {
+            return children.map(c => c.ast()).join('');
+        }
+        return `{${this.ctorName}: ${children.map(c => c.ast()).join('')}}`; 
+    },
+})
+
 export function convertTiddlyWikiLineToMarkdown(text: string): string {
     const matchResult = grammar.TiddlyWikiMarkdown.match(text);
-    //console.log(grammar.TiddlyWikiMarkdown.trace(text).toString());
     if (matchResult.failed()) {
         return `failed to parse: ${matchResult.message}`;
     } else {
-        const ast = toAST(matchResult);
-        //console.log(`LINE ${text} --> ${ast}`)
+        const ast = line_semantics(matchResult).ast();
+        console.log(`TM AST LINE: ${text} -->\n${ast}`)
         return line_semantics(matchResult).markdown();
     }
 }
@@ -117,8 +138,8 @@ export function convertTiddlyWikiToMarkdown(text: string): string {
     if (matchResult.failed()) {
         return `failed to parse: ${matchResult.message}`;
     } else {
-        const ast = toAST(matchResult);
-        //console.log(`BLOCK ${text} --> ${ast}`)
+        const ast = block_semantics(matchResult).ast();
+        console.log(`TM AST BLOCK: ${text} -->\n${ast}`)
         return block_semantics(matchResult).markdown();
     }
 }

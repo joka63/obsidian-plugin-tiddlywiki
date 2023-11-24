@@ -108,12 +108,36 @@ line_semantics.addOperation<string>('tiddler()', {
     sp(a0) { return ' '; },
 });
 
+block_semantics.addOperation<string>('ast()', {
+    _terminal() { return this.sourceString; },
+    _iter(...children) { return children.map(c => c.ast()).join(''); },
+    _nonterminal(...children) { 
+        if ( ['any', 'upper', 'lower', 'sp', 'sps', 'letter', 'punct', 'chunk'].includes(this.ctorName) ) {
+            return children.map(c => c.ast()).join('');
+        }
+        return `{${this.ctorName}: ${children.map(c => c.ast()).join('')}}`; 
+    },
+})
+
+line_semantics.addOperation<string>('ast()', {
+    _terminal() { return this.sourceString; },
+    _iter(...children) { return children.map(c => c.ast()).join(''); },
+    _nonterminal(...children) { 
+        if ( ['any', 'upper', 'lower', 'sp', 'sps', 'letter', 'punct', 'chunk'].includes(this.ctorName) ) {
+            return children.map(c => c.ast()).join('');
+        }
+        return `{${this.ctorName}: ${children.map(c => c.ast()).join('')}}`; 
+    },
+})
+
+
 export function convertMarkdownLineToTiddlyWiki(text: string): string {
     const matchResult = grammar.Markdown.match(text);
     if (matchResult.failed()) {
         return `failed to parse: ${matchResult.message}`;
     } else {
-        // console.log(`LINE ${text} --> ${JSON.stringify(toAST(matchResult))}`)
+        const ast = line_semantics(matchResult).ast();
+        console.log(`MT AST LINE: ${text} -->\n${ast}`)
         return line_semantics(matchResult).tiddler();
     }
 }
@@ -123,7 +147,8 @@ export function convertMarkdownToTiddlyWiki(text: string): string {
     if (matchResult.failed()) {
         return `failed to parse: ${matchResult.message}`;
     } else {
-        // console.log(`BLOCK ${text} --> ${JSON.stringify(toAST(matchResult))}`)
+        const ast = block_semantics(matchResult).ast();
+        console.log(`MT AST BLOCK: ${text} -->\n${ast}`)
         return block_semantics(matchResult).tiddler();
     }
 }
