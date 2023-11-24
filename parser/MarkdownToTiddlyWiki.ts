@@ -9,7 +9,7 @@ block_semantics.addOperation<string>('tiddler()', {
     _iter(...children) { return children.map(c => c.tiddler()).join(''); },
     _nonterminal(...children) { return children.map(c => c.tiddler()).join(''); },
     document(a) { return a.children.map(c => c.tiddler()).join(''); },
-    block(a) { return a.children.map(c => c.tiddler()).join(''); },
+    block(a) { return a.tiddler(); },
     code_block(a0, a1, a2, a3, a4) { return a0.tiddler() + a1.tiddler() + a2.tiddler() + a3.tiddler() + a4.tiddler(); },
     inner_block(a) { return a.children.map(c => c.tiddler()).join(''); },
     line_quote(a0, a1, a2) { return a0.tiddler() + a1.tiddler() + a2.tiddler(); },
@@ -21,7 +21,12 @@ block_semantics.addOperation<string>('tiddler()', {
     list_item(a) { return a.children.map(c => c.tiddler()).join(''); },
     bullet_item(_a0, _a1, _a2, a3) { return `* ${a3.tiddler()}`; },
     numbered_item(_a0, _a1, _a2, a3, _a4) { return `1. ${a3.tiddler()}`; },
-    heading(_a0, _a1, _a2, a3) { return `! ${a3.tiddler()}\n`; },
+    heading(a0, a1, a2) { 
+        let hx = a0.children.map(c => '!').join('');
+        let sp = a1.children.map(c => c.tiddler()).join('');
+        let heading = a2.tiddler();
+        return `${hx}${sp}${heading}`;
+    },
     nl(_a0) { return '\n'; },
     sp(a0) { return ' '; },
     blank(a0, a1) { return a0.children.map(c => c.tiddler()).join('') + a1.tiddler(); },

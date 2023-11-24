@@ -9,7 +9,7 @@ block_semantics.addOperation<string>('markdown()', {
     _iter(...children) { return children.map(c => c.markdown()).join(''); },
     _nonterminal(...children) { return children.map(c => c.markdown()).join(''); },
     document(a) { return a.children.map(c => c.markdown()).join(''); },
-    block(a) { return a.children.map(c => c.markdown()).join(''); },
+    block(a) { return a.markdown(); },
     code_block(a0, a1, a2, a3, a4) { return a0.markdown() + a1.markdown() + a2.markdown() + a3.markdown() + a4.markdown(); },
     inner_block(a) { return a.children.map(c => c.markdown()).join(''); },
     line_quote(a0, a1, a2) { return a0.markdown() + a1.markdown() + a2.markdown(); },
@@ -21,7 +21,12 @@ block_semantics.addOperation<string>('markdown()', {
     list_item(a) { return a.children.map(c => c.markdown()).join(''); },
     bullet_item(_a0, _a1, _a2, a3) { return `* ${a3.markdown()}`; },
     ordered_item(_a0, _a1, _a2, a3) { return `1. ${a3.markdown()}`; },
-    heading(_a0, _a1, _a2, a3) { return `! ${a3.markdown()}\n`; },
+    heading(a0, a1, a2) { 
+        let hx = a0.children.map(c => '#').join('');
+        let sp = a1.children.map(c => c.markdown()).join('');
+        let heading = a2.markdown();
+        return `${hx}${sp}${heading}`;
+    },
     nl(_a0) { return '\n'; },
     sp(a0) { return ' '; },
     blank(a0, a1) { return a0.children.map(c => c.markdown()).join('') + a1.markdown(); },
@@ -33,9 +38,7 @@ block_semantics.addOperation<string>('markdown()', {
             + a1.children.map(c => c.markdown()).join('') 
             + a2.markdown();    
     },
-    paragraph(a0) { 
-        return convertTiddlyWikiLineToMarkdown(a0.markdown()); 
-    },
+    paragraph(a0) { return a0.markdown(); },
     paragraph_last(a0) { 
         return convertTiddlyWikiLineToMarkdown(a0.markdown()); 
     },
