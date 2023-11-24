@@ -52,7 +52,7 @@ Markdown {
 
 TiddlyWikiBlocks <: MarkdownBlocks {
     block := code_block | block_quote | list | heading | blank | paragraph
-    block_quote = "<<<" sp* nl paragraph "<<<"  
+    block_quote = "<<<" sp* nl paragraph (~"<<<" paragraph)* "<<<"  
     heading := "!"+ sp+ paragraph
     list_item := bullet_item | ordered_item
     bullet_item := (sp* "*"+ sp+) paragraph   

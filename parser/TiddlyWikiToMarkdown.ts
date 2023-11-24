@@ -13,9 +13,12 @@ block_semantics.addOperation<string>('markdown()', {
     code_block(a0, a1, a2, a3, a4) { return a0.markdown() + a1.markdown() + a2.markdown() + a3.markdown() + a4.markdown(); },
     inner_block(a) { return a.children.map(c => c.markdown()).join(''); },
     line_quote(a0, a1, a2) { return a0.markdown() + a1.markdown() + a2.markdown(); },
-    block_quote(_0, _1, _2, a3, _4) { 
-        const quote_lines = a3.markdown().split('\n');
-        return quote_lines.slice(0, -1).map((l: any) => `> ${l}`).join('\n');
+    block_quote(_0, _1, _2, a3, a4, _a5) { 
+        const line1 = a3.markdown();
+        let quote_lines = a4.children.map(c => c.markdown());
+        quote_lines = [line1, ...quote_lines]
+        let text_nl = quote_lines.map((l: any) => `> ${l}`).join('');
+        return text_nl.replace(/\n$/, '');
     },
     list(a) { return a.children.map(c => c.markdown()).join(''); },
     bullet_item(_0, a1, a2, a3) { 

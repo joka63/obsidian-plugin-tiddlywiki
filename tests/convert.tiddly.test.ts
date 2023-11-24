@@ -62,6 +62,11 @@ export const markdownTestData: TiddlyToMarkdownTestData[] = [
         tiddlerText: `<<<\nUn grand pouvoir implique de grandes responsabilités\n<<<\n`,
         expectedMarkdown: `> Un grand pouvoir implique de grandes responsabilités\n`
     },
+    {   label: "Quote in two lines",
+        tiddlerText: `<<<\nUn grand pouvoir implique de ''grandes'' responsabilités\nUn grand pouvoir implique de //grandes// responsabilités 2\n<<<\n`,
+        expectedMarkdown: `> Un grand pouvoir implique de **grandes** responsabilités\n> Un grand pouvoir implique de _grandes_ responsabilités 2\n`
+    },
+
 ];
 
 describe("convert", () => {
