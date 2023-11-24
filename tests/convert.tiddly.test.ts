@@ -58,6 +58,10 @@ export const markdownTestData: TiddlyToMarkdownTestData[] = [
         tiddlerText: `A numbered list:\n# First list item\n# Second list item\n## A subitem\n# Third list item`,
         expectedMarkdown: `A numbered list:\n1. First list item\n1. Second list item\n   1. A subitem\n1. Third list item`
     },
+    {   label: "Quote in one line",
+        tiddlerText: `<<<\nUn grand pouvoir implique de grandes responsabilités\n<<<\n`,
+        expectedMarkdown: `> Un grand pouvoir implique de grandes responsabilités\n`
+    },
 ];
 
 describe("convert", () => {

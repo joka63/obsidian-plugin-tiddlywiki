@@ -13,9 +13,9 @@ block_semantics.addOperation<string>('markdown()', {
     code_block(a0, a1, a2, a3, a4) { return a0.markdown() + a1.markdown() + a2.markdown() + a3.markdown() + a4.markdown(); },
     inner_block(a) { return a.children.map(c => c.markdown()).join(''); },
     line_quote(a0, a1, a2) { return a0.markdown() + a1.markdown() + a2.markdown(); },
-    block_quote(_0, _1, _2, a3, _4, _5) { 
+    block_quote(_0, _1, _2, a3, _4) { 
         const quote_lines = a3.markdown().split('\n');
-        return quote_lines.map((l: any) => `> ${l}`).join('\n') + '\n';
+        return quote_lines.slice(0, -1).map((l: any) => `> ${l}`).join('\n');
     },
     list(a) { return a.children.map(c => c.markdown()).join(''); },
     bullet_item(_0, a1, a2, a3) { 
@@ -140,18 +140,24 @@ export function convertTiddlyWikiLineToMarkdown(text: string): string {
         return `failed to parse: ${matchResult.message}`;
     } else {
         const ast = line_semantics(matchResult).ast();
-        // console.log(`TM AST LINE: ${text} -->\n${ast}`)
+        console.log(`TM AST LINE: ${text} -->\n${ast}`)
         return line_semantics(matchResult).markdown();
     }
 }
 
+/**
+ * Converts a TiddlyWiki tiddler to Markdown using regular expressions.
+ * See the test suite in tests/convert.tiddly.test.ts for examples of the conversion.
+ * @param text content of a TiddlyWiki tiddler
+ * @returns the content of the tiddler converted to Markdown
+ */
 export function convertTiddlyWikiToMarkdown(text: string): string {
     const matchResult = grammar.TiddlyWikiBlocks.match(text);
     if (matchResult.failed()) {
         return `failed to parse: ${matchResult.message}`;
     } else {
         const ast = block_semantics(matchResult).ast();
-        // console.log(`TM AST BLOCK: ${text} -->\n${ast}`)
+        console.log(`TM AST BLOCK: ${text} -->\n${ast}`)
         return block_semantics(matchResult).markdown();
     }
 }

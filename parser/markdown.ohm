@@ -6,11 +6,11 @@ Link reference definitions are parsed and a map of links is constructed.
 **/
 MarkdownBlocks {
     document = block*
-    block = code_block | block_quote | line_quote | list | heading | blank | paragraph
+    block = code_block | quote | list | heading | blank | paragraph
     code_block = "```" ("a".."z" | "-")* nl (~"```" any)* "```"
-    inner_block = block_quote | list_item | paragraph 
-    line_quote = ">" sp+ inner_block+ 
-    block_quote = "<<<???" sp* nl paragraph nl "<<<???"  
+    inner_block = line_quote | list_item | paragraph 
+    quote = line_quote+
+    line_quote = ">" sp+ inner_block 
     list = list_item+
     list_item = bullet_item | numbered_item
     bullet_item = (sp* "-" sp+) paragraph   
@@ -51,8 +51,8 @@ Markdown {
 }
 
 TiddlyWikiBlocks <: MarkdownBlocks {
-    block_quote := "<<<" sp* nl paragraph nl "<<<"  
-    line_quote := ">???" sp+ inner_block+ 
+    block := code_block | block_quote | list | heading | blank | paragraph
+    block_quote = "<<<" sp* nl paragraph "<<<"  
     heading := "!"+ sp+ paragraph
     list_item := bullet_item | ordered_item
     bullet_item := (sp* "*"+ sp+) paragraph   

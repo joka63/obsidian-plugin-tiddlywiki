@@ -12,11 +12,10 @@ block_semantics.addOperation<string>('tiddler()', {
     block(a) { return a.tiddler(); },
     code_block(a0, a1, a2, a3, a4) { return a0.tiddler() + a1.tiddler() + a2.tiddler() + a3.tiddler() + a4.tiddler(); },
     inner_block(a) { return a.children.map(c => c.tiddler()).join(''); },
-    line_quote(a0, a1, a2) { return a0.tiddler() + a1.tiddler() + a2.tiddler(); },
-    block_quote(_0, _1, _2, a3, _4, _5) { 
-        const quote_lines = a3.tiddler().split('\n');
-        return quote_lines.map((l: any) => `> ${l}`).join('\n') + '\n';
+    quote(a) { 
+        return `<<<\n${a.children.map(c => c.tiddler()).join('')}<<<\n` 
     },
+    line_quote(_0, _1, a2) { return a2.tiddler(); },
     list(a) { return a.children.map(c => c.tiddler()).join(''); },
     list_item(a) { return a.tiddler(); },
     bullet_item(a0, _1, a2, a3) { 
@@ -152,18 +151,24 @@ export function convertMarkdownLineToTiddlyWiki(text: string): string {
         return `failed to parse: ${matchResult.message}`;
     } else {
         const ast = line_semantics(matchResult).ast();
-        // console.log(`MT AST LINE: ${text} -->\n${ast}`)
+        console.log(`MT AST LINE: ${text} -->\n${ast}`)
         return line_semantics(matchResult).tiddler();
     }
 }
 
+/**
+ * Converts a markdown string to a TiddlyWiki string.
+ * See the tests in tests/MarkdownToTiddlyWiki.test.ts for examples
+ * @param text  content of a markdown file
+ * @returns the content of the file converted to TiddlyWiki
+ */
 export function convertMarkdownToTiddlyWiki(text: string): string {
     const matchResult = grammar.MarkdownBlocks.match(text);
     if (matchResult.failed()) {
         return `failed to parse: ${matchResult.message}`;
     } else {
         const ast = block_semantics(matchResult).ast();
-        // console.log(`MT AST BLOCK: ${text} -->\n${ast}`)
+        console.log(`MT AST BLOCK: ${text} -->\n${ast}`)
         return block_semantics(matchResult).tiddler();
     }
 }
