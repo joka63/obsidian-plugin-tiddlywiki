@@ -18,9 +18,19 @@ block_semantics.addOperation<string>('tiddler()', {
         return quote_lines.map((l: any) => `> ${l}`).join('\n') + '\n';
     },
     list(a) { return a.children.map(c => c.tiddler()).join(''); },
-    list_item(a) { return a.children.map(c => c.tiddler()).join(''); },
-    bullet_item(_a0, _a1, _a2, a3) { return `* ${a3.tiddler()}`; },
-    numbered_item(_a0, _a1, _a2, a3, _a4) { return `1. ${a3.tiddler()}`; },
+    list_item(a) { return a.tiddler(); },
+    bullet_item(a0, _1, a2, a3) { 
+        let ix = a0.children.length / 2 + 1;
+        let bullets = '*'.repeat(ix);
+        let sp = a2.children.map(c => c.tiddler()).join('');
+        return `${bullets}${sp}${a3.tiddler()}`; 
+    },
+    numbered_item(a0, _a1, _a2, a3, a4) { 
+        let ix = a0.children.length / 3 + 1;
+        let bullets = '#'.repeat(ix);
+        let sp = a3.children.map(c => c.tiddler()).join('');
+        return `${bullets}${sp}${a4.tiddler()}`; 
+    },
     heading(a0, a1, a2) { 
         let hx = a0.children.map(c => '!').join('');
         let sp = a1.children.map(c => c.tiddler()).join('');
@@ -142,7 +152,7 @@ export function convertMarkdownLineToTiddlyWiki(text: string): string {
         return `failed to parse: ${matchResult.message}`;
     } else {
         const ast = line_semantics(matchResult).ast();
-        console.log(`MT AST LINE: ${text} -->\n${ast}`)
+        // console.log(`MT AST LINE: ${text} -->\n${ast}`)
         return line_semantics(matchResult).tiddler();
     }
 }
@@ -153,7 +163,7 @@ export function convertMarkdownToTiddlyWiki(text: string): string {
         return `failed to parse: ${matchResult.message}`;
     } else {
         const ast = block_semantics(matchResult).ast();
-        console.log(`MT AST BLOCK: ${text} -->\n${ast}`)
+        // console.log(`MT AST BLOCK: ${text} -->\n${ast}`)
         return block_semantics(matchResult).tiddler();
     }
 }

@@ -18,9 +18,18 @@ block_semantics.addOperation<string>('markdown()', {
         return quote_lines.map((l: any) => `> ${l}`).join('\n') + '\n';
     },
     list(a) { return a.children.map(c => c.markdown()).join(''); },
-    list_item(a) { return a.children.map(c => c.markdown()).join(''); },
-    bullet_item(_a0, _a1, _a2, a3) { return `* ${a3.markdown()}`; },
-    ordered_item(_a0, _a1, _a2, a3) { return `1. ${a3.markdown()}`; },
+    bullet_item(_0, a1, a2, a3) { 
+        let ix = (a1.children.length - 1) * 2;
+        let indent = ' '.repeat(ix);
+        let sp = a2.children.map(c => c.markdown()).join('');
+        return `${indent}-${sp}${a3.markdown()}`; 
+    },
+    ordered_item(_0, a1, a2, a3) { 
+        let ix = (a1.children.length - 1) * 3;
+        let indent = ' '.repeat(ix);
+        let sp = a2.children.map(c => c.markdown()).join('');
+        return `${indent}1.${sp}${a3.markdown()}`; 
+    },
     heading(a0, a1, a2) { 
         let hx = a0.children.map(c => '#').join('');
         let sp = a1.children.map(c => c.markdown()).join('');
@@ -131,7 +140,7 @@ export function convertTiddlyWikiLineToMarkdown(text: string): string {
         return `failed to parse: ${matchResult.message}`;
     } else {
         const ast = line_semantics(matchResult).ast();
-        console.log(`TM AST LINE: ${text} -->\n${ast}`)
+        // console.log(`TM AST LINE: ${text} -->\n${ast}`)
         return line_semantics(matchResult).markdown();
     }
 }
@@ -142,7 +151,7 @@ export function convertTiddlyWikiToMarkdown(text: string): string {
         return `failed to parse: ${matchResult.message}`;
     } else {
         const ast = block_semantics(matchResult).ast();
-        console.log(`TM AST BLOCK: ${text} -->\n${ast}`)
+        // console.log(`TM AST BLOCK: ${text} -->\n${ast}`)
         return block_semantics(matchResult).markdown();
     }
 }
