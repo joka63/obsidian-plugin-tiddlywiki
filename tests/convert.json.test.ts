@@ -14,19 +14,6 @@ export const tiddlyJsonFileTestData: TiddlyJsonFileTestData[] = [
     },
 ]
 
-global.File = class MockFile {
-    constructor(readonly fileBits: BlobPart[], readonly fileName: string, readonly options?: FilePropertyBag) {}
-    readonly lastModified: number = 0;
-    readonly name: string = this.fileName;
-    readonly webkitRelativePath: string = "";
-    readonly size: number = 0;  
-    readonly type: string = ""; 
-    readonly slice: Blob["slice"] = (start?: number, end?: number, contentType?: string) => new Blob(this.fileBits, this.options);  
-    readonly arrayBuffer: Blob["arrayBuffer"] = () => Promise.resolve(new ArrayBuffer(0));  
-    readonly text: Blob["text"] = () => Promise.resolve("");
-    readonly stream: Blob["stream"] = () => new ReadableStream();
-}
-
 describe("convert", () => {
     it.each<TiddlyJsonFileTestData>(tiddlyJsonFileTestData)("Import tiddler hierarchy from $json_file: $label", 
                                                             async ({json_file, toc_name, expectedDirs}) => {

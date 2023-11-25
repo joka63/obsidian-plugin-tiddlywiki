@@ -57,13 +57,52 @@ export function convertTiddlersToObsidianMarkdown(tiddlers: Tiddler[], toc_name?
 			tags: tiddler.tags?.split(' ')
 		});
 	}
+	analyseTiddlersHierarchy(markdownArray, toc_name);	
 	return markdownArray;
+}
+
+function analyseTiddlersHierarchy(markdownArray: ObsidianMarkdown[], toc_name?: string) {
+	if (!toc_name) return markdownArray;
+	// console.log(`markdownArray: ${JSON.stringify(markdownArray, null, 2)}`);
+	const titleSet = new Set<string>();
+	const containers : { [key: string]: Set<string> } = {};
+	const containees : { [key: string]: Set<string> } = {};
+	for (const markdownFile of markdownArray) {
+		if (markdownFile.title) {
+			titleSet.add(markdownFile.title);
+		}
+	}
+	// console.log(`tiddlers: ${JSON.stringify(titleSet, (_key, value) => (value instanceof Set ? [...value] : value), 2)}`);
+
+	for (const markdownFile of markdownArray) {
+		for (const tag of markdownFile.tags || []) {
+			if (titleSet.has(tag)) {
+				let title = markdownFile.title;
+				if (!containees[title]) containees[title] = new Set<string>();
+				containees[title].add(tag);
+				if (!containers[tag]) containers[tag] = new Set<string>();
+				containers[tag].add(markdownFile.title);
+			}
+		}
+	}
+	// console.log(`containers: ${JSON.stringify(containers, (_key, value) => (value instanceof Set ? [...value] : value), 2)}`);
+	// console.log(`containees: ${JSON.stringify(containees, (_key, value) => (value instanceof Set ? [...value] : value), 2)}`);
+
+	for (const markdownFile of markdownArray) {
+		if (markdownFile.title === toc_name) continue;
+		if (containees[markdownFile.title]) {
+			let dir:string = Array.from(containees[markdownFile.title])[0];
+			if (dir === toc_name) continue;
+			markdownFile.filename = path.join(dir, markdownFile.filename || `${markdownFile.title}.md`.replace(/[\/\:\\]/g, ''));
+		}
+	}
+	// console.log(`markdownArray: ${JSON.stringify(markdownArray, null, 2)}`);
 }
 
 /**
  * Gets a list of directories containing markdown files from the filenames in the markdownArray.
  * @param markdownArray 
- * @returns a list of directories containing markdown files
+ * @returns an alphabetically sorted list of directories containing markdown files
  * @throws an error if the directory does not exist
  */
 export function markdownArrayDirectories(markdownArray: ObsidianMarkdown[]): string[] {
@@ -71,9 +110,9 @@ export function markdownArrayDirectories(markdownArray: ObsidianMarkdown[]): str
 	for (const markdownFile of markdownArray) {
 		if (!markdownFile.filename) continue;
 		const directory = path.dirname(markdownFile.filename).split('/')[0];
-		if (directory) directorySet.add(directory);
+		if (directory && directory !== '.') directorySet.add(directory);
 	}
-	return Array.from(directorySet);
+	return Array.from(directorySet).sort();
 }
 
 export async function writeObsidianMarkdownFiles(markdownArray: ObsidianMarkdown[], directoryPath: string) {
