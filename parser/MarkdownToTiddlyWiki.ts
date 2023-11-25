@@ -151,7 +151,7 @@ export function convertMarkdownLineToTiddlyWiki(text: string): string {
         return `failed to parse: ${matchResult.message}`;
     } else {
         const ast = line_semantics(matchResult).ast();
-        console.log(`MT AST LINE: ${text} -->\n${ast}`)
+        // console.log(`MT AST LINE: ${text} -->\n${ast}`)
         return line_semantics(matchResult).tiddler();
     }
 }
@@ -168,7 +168,7 @@ export function convertMarkdownToTiddlyWiki(text: string): string {
         return `failed to parse: ${matchResult.message}`;
     } else {
         const ast = block_semantics(matchResult).ast();
-        console.log(`MT AST BLOCK: ${text} -->\n${ast}`)
+        // console.log(`MT AST BLOCK: ${text} -->\n${ast}`)
         return block_semantics(matchResult).tiddler();
     }
 }
