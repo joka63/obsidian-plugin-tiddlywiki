@@ -12,6 +12,10 @@ export const tiddlyJsonFileTestData: TiddlyJsonFileTestData[] = [
       toc_name: "Inhalt", 
       expectedDirs: ["Aiki-Taiso", "Ukemi"] 
     },
+    { label: "with nested and ambiguous folders", json_file: "Import-Folder-Test.json", 
+      toc_name: "Inhalt", 
+      expectedDirs: ["Obsidian", "Obsidian/Plugin-Development", "Obsidian/Typescript", "TiddlyWiki"]
+    },
 ]
 
 describe("convert", () => {
