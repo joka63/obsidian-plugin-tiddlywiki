@@ -1,20 +1,10 @@
 import * as fs from "fs";
 import * as path from "path";
+import { Tiddler } from "../model/NotesMetaData";
+
 import { convertMarkdownToTiddlyWiki } from "../parser/MarkdownToTiddlyWiki";
 export { convertMarkdownToTiddlyWiki } from "../parser/MarkdownToTiddlyWiki";
 
-export interface Tiddler {
-	title: string;
-	text: string;
-	tags?: string;
-	created: string;
-	modified: string;
-}
-
-export type ObsidianMarkdown = {
-	title: string;
-	content: string;
-};
 
 export async function convertObsidianMarkdownToTiddlers(directoryPath: string): Promise<Tiddler[]> {
 	const tiddlers: Tiddler[] = [];

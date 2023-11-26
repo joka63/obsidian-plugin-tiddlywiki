@@ -1,8 +1,9 @@
 import * as path from "path";
 import * as fs from "fs";
 
-import { convertTiddlersToObsidianMarkdown, markdownArrayDirectories } from '../services/TiddlyWikiToMarkdownService';
-import { Tiddler } from "services/MarkdownToTiddlyWikiService";
+import { markdownArrayDirectories } from "model/NotesMetaData";
+import { convertTiddlersToObsidianMarkdown } from "model/NotesMetaData";
+import { Tiddler } from "../model/NotesMetaData";
 
 export type TiddlyJsonFileTestData = { label: string, json_file: string, toc_name?: string, expectedDirs?: string[]  }
 

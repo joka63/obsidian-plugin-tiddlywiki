@@ -1,6 +1,7 @@
 import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
 import * as path from 'path';
-import { convertJSONToTiddlers, convertTiddlersToObsidianMarkdown, writeObsidianMarkdownFiles } from 'services/TiddlyWikiToMarkdownService';
+import { convertJSONToTiddlers, writeObsidianMarkdownFiles } from 'services/TiddlyWikiToMarkdownService';
+import { convertTiddlersToObsidianMarkdown } from "model/NotesMetaData";
 import { exportAllMarkdownFilesToJSON } from 'services/MarkdownToTiddlyWikiService';
 import { downloadJsonAsFile } from 'utils/downloadJsonAsFile';
 
