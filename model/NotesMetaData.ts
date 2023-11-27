@@ -1,5 +1,5 @@
-import { convertTiddlyWikiToMarkdown } from "parser/TiddlyWikiToMarkdown";
 import * as path from "path";
+import { convertTiddlyWikiToMarkdown } from "../parser/TiddlyWikiToMarkdown";
 
 export interface Tiddler {
 	title: string;
@@ -17,17 +17,85 @@ export type ObsidianMarkdown = {
 };
 
 
-class NotesMetaData {
-    private _notes: never[];
-    constructor() {
-        this._notes = [];
-    }
-    get notes() {
+export class NotesMetaData {
+	private _notes: ObsidianMarkdown[] = [];
+	private _toc_name?: string;
+
+    constructor(tiddlers: Tiddler[], toc_name?: string) {
+		this._toc_name = toc_name;
+		for (const tiddler of tiddlers) {
+			const frontMatter = `---\n`
+				+ `${tiddler.tags ? `tags: ${tiddler.tags}\n` : ''}`
+				+ `---\n`;
+	
+			const content = frontMatter + convertTiddlyWikiToMarkdown(tiddler.text);
+			const filename = `${tiddler.title}.md`.replace(/[\/\:\\]/g, '');
+	
+			this._notes.push({
+				content,
+				title: tiddler.title,
+				filename,
+				tags: tiddler.tags?.split(' ')
+			});
+		}
+	}
+
+	analyseTiddlersHierarchy(): ObsidianMarkdown[] {
+		if (!this._toc_name) return this.notes;
+		// console.log(`markdownArray: ${JSON.stringify(markdownArray, null, 2)}`);
+		const titleSet = new Set<string>();
+		const containers: { [key: string]: Set<string>; } = {};
+		const containees: { [key: string]: Set<string>; } = {};
+		for (const markdownFile of this._notes) {
+			if (markdownFile.title) {
+				titleSet.add(markdownFile.title);
+			}
+		}
+		// console.log(`tiddlers: ${JSON.stringify(titleSet, (_key, value) => (value instanceof Set ? [...value] : value), 2)}`);
+		for (const markdownFile of this._notes) {
+			for (const tag of markdownFile.tags || []) {
+				if (titleSet.has(tag)) {
+					let title = markdownFile.title;
+					if (!containees[title]) containees[title] = new Set<string>();
+					containees[title].add(tag);
+					if (!containers[tag]) containers[tag] = new Set<string>();
+					containers[tag].add(markdownFile.title);
+				}
+			}
+		}
+		// console.log(`containers: ${JSON.stringify(containers, (_key, value) => (value instanceof Set ? [...value] : value), 2)}`);
+		// console.log(`containees: ${JSON.stringify(containees, (_key, value) => (value instanceof Set ? [...value] : value), 2)}`);
+		for (const markdownFile of this._notes) {
+			if (markdownFile.title === this._toc_name) continue;
+			if (containees[markdownFile.title]) {
+				let dir: string = Array.from(containees[markdownFile.title])[0];
+				if (dir === this._toc_name) continue;
+				markdownFile.filename = path.join(dir, markdownFile.filename || `${markdownFile.title}.md`.replace(/[\/\:\\]/g, ''));
+			}
+		}
+		// console.log(`markdownArray: ${JSON.stringify(markdownArray, null, 2)}`);
+		return this.notes;
+	}
+
+	get notes(): ObsidianMarkdown[] {
         return this._notes;
     }
-    set notes(value) {
-        this._notes = value;
-    }
+
+	/**
+	 * Gets a list of directories containing markdown files from the filenames in the markdownArray.
+	 * @param markdownArray
+	 * @returns an alphabetically sorted list of directories containing markdown files
+	 * @throws an error if the directory does not exist
+	 */
+	get directories(): string[] {
+		let directorySet = new Set<string>();
+		for (const markdownFile of this._notes) {
+			if (!markdownFile.filename) continue;
+			const directory = path.dirname(markdownFile.filename).split('/')[0];
+			if (directory && directory !== '.') directorySet.add(directory);
+		}
+		return Array.from(directorySet).sort();
+	}
 }
 
 /**
@@ -36,77 +104,7 @@ class NotesMetaData {
  * @param toc_name
  * @returns an array of ObsidianMarkdown objects, each containing the title, content, and filename of a tiddler
  */
-export function convertTiddlersToObsidianMarkdown(tiddlers: Tiddler[], toc_name?: string) {
-	const markdownArray: ObsidianMarkdown[] = [];
-
-	for (const tiddler of tiddlers) {
-		const frontMatter = `---\n`
-			+ `${tiddler.tags ? `tags: ${tiddler.tags}\n` : ''}`
-			+ `---\n`;
-
-		const content = frontMatter + convertTiddlyWikiToMarkdown(tiddler.text);
-		const filename = `${tiddler.title}.md`.replace(/[\/\:\\]/g, '');
-
-		markdownArray.push({
-			content,
-			title: tiddler.title,
-			filename,
-			tags: tiddler.tags?.split(' ')
-		});
-	}
-	analyseTiddlersHierarchy(markdownArray, toc_name);
-	return markdownArray;
-}
-
-export function analyseTiddlersHierarchy(markdownArray: ObsidianMarkdown[], toc_name?: string) {
-	if (!toc_name) return markdownArray;
-	// console.log(`markdownArray: ${JSON.stringify(markdownArray, null, 2)}`);
-	const titleSet = new Set<string>();
-	const containers: { [key: string]: Set<string>; } = {};
-	const containees: { [key: string]: Set<string>; } = {};
-	for (const markdownFile of markdownArray) {
-		if (markdownFile.title) {
-			titleSet.add(markdownFile.title);
-		}
-	}
-	// console.log(`tiddlers: ${JSON.stringify(titleSet, (_key, value) => (value instanceof Set ? [...value] : value), 2)}`);
-	for (const markdownFile of markdownArray) {
-		for (const tag of markdownFile.tags || []) {
-			if (titleSet.has(tag)) {
-				let title = markdownFile.title;
-				if (!containees[title]) containees[title] = new Set<string>();
-				containees[title].add(tag);
-				if (!containers[tag]) containers[tag] = new Set<string>();
-				containers[tag].add(markdownFile.title);
-			}
-		}
-	}
-	// console.log(`containers: ${JSON.stringify(containers, (_key, value) => (value instanceof Set ? [...value] : value), 2)}`);
-	// console.log(`containees: ${JSON.stringify(containees, (_key, value) => (value instanceof Set ? [...value] : value), 2)}`);
-	for (const markdownFile of markdownArray) {
-		if (markdownFile.title === toc_name) continue;
-		if (containees[markdownFile.title]) {
-			let dir: string = Array.from(containees[markdownFile.title])[0];
-			if (dir === toc_name) continue;
-			markdownFile.filename = path.join(dir, markdownFile.filename || `${markdownFile.title}.md`.replace(/[\/\:\\]/g, ''));
-		}
-	}
-	// console.log(`markdownArray: ${JSON.stringify(markdownArray, null, 2)}`);
-}
-
-
-/**
- * Gets a list of directories containing markdown files from the filenames in the markdownArray.
- * @param markdownArray
- * @returns an alphabetically sorted list of directories containing markdown files
- * @throws an error if the directory does not exist
- */
-export function markdownArrayDirectories(markdownArray: ObsidianMarkdown[]): string[] {
-	let directorySet = new Set<string>();
-	for (const markdownFile of markdownArray) {
-		if (!markdownFile.filename) continue;
-		const directory = path.dirname(markdownFile.filename).split('/')[0];
-		if (directory && directory !== '.') directorySet.add(directory);
-	}
-	return Array.from(directorySet).sort();
+export function convertTiddlersToObsidianMarkdown(tiddlers: Tiddler[], toc_name?: string): ObsidianMarkdown[] {
+	const notes = new NotesMetaData(tiddlers, toc_name);
+	return notes.analyseTiddlersHierarchy();
 }

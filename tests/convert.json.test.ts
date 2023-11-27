@@ -1,9 +1,7 @@
 import * as path from "path";
 import * as fs from "fs";
 
-import { markdownArrayDirectories } from "model/NotesMetaData";
-import { convertTiddlersToObsidianMarkdown } from "model/NotesMetaData";
-import { Tiddler } from "../model/NotesMetaData";
+import { NotesMetaData, Tiddler, convertTiddlersToObsidianMarkdown } from "../model/NotesMetaData";
 
 export type TiddlyJsonFileTestData = { label: string, json_file: string, toc_name?: string, expectedDirs?: string[]  }
 
@@ -28,15 +26,18 @@ describe("convert", () => {
         const tiddlers: Tiddler[] = JSON.parse(jsonText);
         expect(tiddlers.length).toBeGreaterThan(0);
         if (toc_name) expect(tiddlers).toContainEqual(expect.objectContaining({ title: toc_name }));
-        const markdownArray = convertTiddlersToObsidianMarkdown(tiddlers, toc_name);
+        const notes = new NotesMetaData(tiddlers, toc_name);
+        notes.analyseTiddlersHierarchy();
         if (!toc_name) {
-            for (const markdownFile of markdownArray) {
+            for (const markdownFile of notes.notes) {
                 expect(markdownFile.filename).toEqual(`${markdownFile.title}.md`.replace(/[\/\:\\]/g, ''));
             }
         }
         if (toc_name) {
-            expect(markdownArrayDirectories(markdownArray)).toEqual(expectedDirs);
+            expect(notes.directories).toEqual(expectedDirs);
         }
         // console.log(JSON.stringify(tiddlers, null, 2));
+        const markdownArray = convertTiddlersToObsidianMarkdown(tiddlers, toc_name);
+        expect(markdownArray).toEqual(notes.notes);
     })
 });
