@@ -46,6 +46,7 @@ export class NotesMetaData {
 		if (this._toc_name === undefined) return;
 		if (collectedFolders.has(title)) return;	// avoid infinite recursion
 		if (!containers.hasOwnProperty(title)) return;
+		collectedFolders.add(title);
 		for (const subTitle of containers[title]) {
 			folders[subTitle] = title == this._toc_name ? [] : [...folders[title], title];
 			this.collectFolders(subTitle, collectedFolders, containers, folders);
@@ -88,7 +89,11 @@ export class NotesMetaData {
 		for (let markdownFile of this._notes) {
 			if (markdownFile.title === this._toc_name) continue;
 			if (folders[markdownFile.title]) {
-				markdownFile.filename = path.join(...folders[markdownFile.title], `${markdownFile.title}.md`);
+				if (collectedFolders.has(markdownFile.title)) {
+					markdownFile.filename = path.join(...folders[markdownFile.title], markdownFile.title, `${markdownFile.title}.md`);
+				} else {
+					markdownFile.filename = path.join(...folders[markdownFile.title], `${markdownFile.title}.md`);
+				}
 				// console.log(`dir of ${markdownFile.title} --> ${markdownFile.filename}`);
 			}
 			tmpNotes.push(markdownFile);
