@@ -40,12 +40,26 @@ export class NotesMetaData {
 		}
 	}
 
+	collectFolders(title: string, collectedFolders: Set<string>, 
+				   containers: { [key: string]: Set<string>; }, 
+				   folders: { [key: string]: string[]; }) {
+		if (this._toc_name === undefined) return;
+		if (collectedFolders.has(title)) return;	// avoid infinite recursion
+		if (!containers.hasOwnProperty(title)) return;
+		for (const subTitle of containers[title]) {
+			folders[subTitle] = title == this._toc_name ? [] : [...folders[title], title];
+			this.collectFolders(subTitle, collectedFolders, containers, folders);
+		}
+	}
+
 	analyseTiddlersHierarchy(): ObsidianMarkdown[] {
 		if (!this._toc_name) return this.notes;
 		// console.log(`markdownArray: ${JSON.stringify(markdownArray, null, 2)}`);
 		const titleSet = new Set<string>();
 		const containers: { [key: string]: Set<string>; } = {};
 		const containees: { [key: string]: Set<string>; } = {};
+		const folders: { [key: string]: string[]; } = {};
+		const collectedFolders: Set<string> = new Set<string>();
 		for (const markdownFile of this._notes) {
 			if (markdownFile.title) {
 				titleSet.add(markdownFile.title);
@@ -65,15 +79,23 @@ export class NotesMetaData {
 		}
 		// console.log(`containers: ${JSON.stringify(containers, (_key, value) => (value instanceof Set ? [...value] : value), 2)}`);
 		// console.log(`containees: ${JSON.stringify(containees, (_key, value) => (value instanceof Set ? [...value] : value), 2)}`);
-		for (const markdownFile of this._notes) {
-			if (markdownFile.title === this._toc_name) continue;
-			if (containees[markdownFile.title]) {
-				let dir: string = Array.from(containees[markdownFile.title])[0];
-				if (dir === this._toc_name) continue;
-				markdownFile.filename = path.join(dir, markdownFile.filename || `${markdownFile.title}.md`.replace(/[\/\:\\]/g, ''));
-			}
+		if (this._toc_name !== undefined) {
+			this.collectFolders(this._toc_name, collectedFolders, containers, folders);
+			// console.log(`folders: ${JSON.stringify(folders, null, 2)}`);
 		}
-		// console.log(`markdownArray: ${JSON.stringify(markdownArray, null, 2)}`);
+
+		let tmpNotes: ObsidianMarkdown[] = [];
+		for (let markdownFile of this._notes) {
+			if (markdownFile.title === this._toc_name) continue;
+			if (folders[markdownFile.title]) {
+				markdownFile.filename = path.join(...folders[markdownFile.title], `${markdownFile.title}.md`);
+				// console.log(`dir of ${markdownFile.title} --> ${markdownFile.filename}`);
+			}
+			tmpNotes.push(markdownFile);
+		}
+		this._notes = [...tmpNotes];
+		// console.log(`notes: ${JSON.stringify(this._notes, null, 2)}`);
+		// console.log(`directories: ${JSON.stringify(this.directories, null, 2)}`);
 		return this.notes;
 	}
 
@@ -91,10 +113,23 @@ export class NotesMetaData {
 		let directorySet = new Set<string>();
 		for (const markdownFile of this._notes) {
 			if (!markdownFile.filename) continue;
-			const directory = path.dirname(markdownFile.filename).split('/')[0];
+			const directory = path.dirname(markdownFile.filename);
 			if (directory && directory !== '.') directorySet.add(directory);
 		}
 		return Array.from(directorySet).sort();
+	}
+
+	/**
+	 * @param title
+	 * @return the folder into which the markdown file should be placed
+	 */
+	folder(title : string): string {
+		for (const markdownFile of this._notes) {
+			if (markdownFile.title === title) {
+				return markdownFile.filename ? path.dirname(markdownFile.filename) : '';
+			}
+		}
+		throw new Error(`folder: no markdown file found for title ${title}`);
 	}
 }
 
@@ -105,6 +140,13 @@ export class NotesMetaData {
  * @returns an array of ObsidianMarkdown objects, each containing the title, content, and filename of a tiddler
  */
 export function convertTiddlersToObsidianMarkdown(tiddlers: Tiddler[], toc_name?: string): ObsidianMarkdown[] {
+	if (toc_name === undefined) {
+		for (const tiddler of tiddlers) {
+			if (tiddler.text.includes('<<toc')) {
+				toc_name = tiddler.title;
+			}
+		}
+	}
 	const notes = new NotesMetaData(tiddlers, toc_name);
 	return notes.analyseTiddlersHierarchy();
 }

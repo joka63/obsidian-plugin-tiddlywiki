@@ -13,7 +13,7 @@ export const tiddlyJsonFileTestData: TiddlyJsonFileTestData[] = [
     },
     { label: "with nested and ambiguous folders", json_file: "Import-Folder-Test.json", 
       toc_name: "Inhalt", 
-      expectedDirs: ["Obsidian", "Obsidian/Plugin-Development", "Obsidian/Typescript", "TiddlyWiki"]
+      expectedDirs: ["Obsidian", "Obsidian/Plugin-Development", "TiddlyWiki", "TiddlyWiki/Typescript"]
     },
 ]
 
@@ -34,7 +34,12 @@ describe("convert", () => {
             }
         }
         if (toc_name) {
+            let allExpectedDirs = [...expectedDirs || [], '.'];
             expect(notes.directories).toEqual(expectedDirs);
+            for (const note of notes.notes) {
+                // console.log(`note: ${note.title} --> ${notes.folder(note.title)}`);
+                expect(allExpectedDirs).toContain(notes.folder(note.title))
+            }
         }
         // console.log(JSON.stringify(tiddlers, null, 2));
         const markdownArray = convertTiddlersToObsidianMarkdown(tiddlers, toc_name);
