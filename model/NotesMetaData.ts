@@ -87,7 +87,10 @@ export class NotesMetaData {
 
 		let tmpNotes: ObsidianMarkdown[] = [];
 		for (let markdownFile of this._notes) {
-			if (markdownFile.title === this._toc_name) continue;
+			if (markdownFile.title === this._toc_name) {
+				tmpNotes.push(markdownFile);
+				continue;
+			}
 			if (folders[markdownFile.title]) {
 				if (collectedFolders.has(markdownFile.title)) {
 					markdownFile.filename = path.join(...folders[markdownFile.title], markdownFile.title, `${markdownFile.title}.md`);
@@ -135,6 +138,20 @@ export class NotesMetaData {
 			}
 		}
 		throw new Error(`folder: no markdown file found for title ${title}`);
+	}
+
+	/**
+	 * Gets the ObsidianMarkdown object for the given title
+	 * @param title 	
+	 * @returns the ObsidianMarkdown object for the given title, or undefined if not found
+	 */
+	note(title: string): ObsidianMarkdown | undefined {
+		for (const markdownFile of this._notes) {
+			if (markdownFile.title === title) {
+				return markdownFile;
+			}
+		}
+		return undefined;
 	}
 }
 

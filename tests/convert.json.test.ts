@@ -48,6 +48,7 @@ describe("convert", () => {
                     }
                 }
             }
+            expect(notes.notes).toContainEqual(expect.objectContaining({ title: toc_name }));
         }
         // console.log(JSON.stringify(tiddlers, null, 2));
         // const markdownArray = convertTiddlersToObsidianMarkdown(tiddlers, toc_name);
