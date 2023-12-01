@@ -1,20 +1,8 @@
 import * as fs from "fs";
 import * as path from "path";
-import { convertTiddlyWikiToMarkdown } from "../parser/TiddlyWikiToMarkdown";
+import { Tiddler, ObsidianMarkdown } from "../model/NotesMetaData";
+import { dir } from "console";
 export { convertTiddlyWikiToMarkdown } from "../parser/TiddlyWikiToMarkdown";
-
-export interface Tiddler {
-	title: string;
-	text: string;
-	tags?: string;
-	created: string;
-	modified: string;
-}
-
-export type ObsidianMarkdown = {
-	title: string;
-	content: string
-}
 
 export async function convertJSONToTiddlers(file: File): Promise<Tiddler[]> {
 	const fileReader = new FileReader();
@@ -31,30 +19,16 @@ export async function convertJSONToTiddlers(file: File): Promise<Tiddler[]> {
 	});
 }
 
-export function convertTiddlersToObsidianMarkdown(tiddlers: Tiddler[]) {
-	const markdownArray: ObsidianMarkdown[] = [];
-
-	for (const tiddler of tiddlers) {
-		const frontMatter = `---\n`
-			+ `${tiddler.tags ? `tags: ${tiddler.tags}\n` : ''}`
-			+ `---\n`;
-
-		const content = frontMatter + convertTiddlyWikiToMarkdown(tiddler.text);
-
-		markdownArray.push({
-			content,
-			title: tiddler.title
-		});
-	}
-	return markdownArray;
-}
-
 export async function writeObsidianMarkdownFiles(markdownArray: ObsidianMarkdown[], directoryPath: string) {
 	fs.mkdirSync(directoryPath, { recursive: true });
 
 	for (const markdownFile of markdownArray) {
-		const fileName = `${markdownFile.title}.md`.replace(/[\/\:\\]/g, '');
-
-		fs.writeFileSync(path.join(directoryPath, fileName), markdownFile.content, 'utf-8');
+		const filePath = markdownFile.filename || `${markdownFile.title}.md`.replace(/[\/\:\\]/g, '');
+		const relDir = path.dirname(filePath);
+		const baseName = path.basename(filePath);
+		const fullPath = path.join(directoryPath, relDir, baseName)
+		console.log("Writing file: " + fullPath);
+		fs.mkdirSync(path.join(directoryPath, relDir), { recursive: true });
+		fs.writeFileSync(fullPath, markdownFile.content, 'utf-8');
 	}
 }

@@ -1,0 +1,57 @@
+import * as path from "path";
+import * as fs from "fs";
+
+import { NotesMetaData, Tiddler, convertTiddlersToObsidianMarkdown } from "../model/NotesMetaData";
+
+export type TiddlyJsonFileTestData = { label: string, json_file: string, toc_name?: string, expectedDirs?: string[]  }
+
+export const tiddlyJsonFileTestData: TiddlyJsonFileTestData[] = [
+    { label: "without content mapping", json_file: "Aikido-Zen.json" },
+    { label: "with content mapping", json_file: "Aikido-Zen.json", 
+      toc_name: "Inhalt", 
+      expectedDirs: ["Aiki-Taiso", "Ukemi"] 
+    },
+    { label: "with nested and ambiguous folders", json_file: "Import-Folder-Test.json", 
+      toc_name: "Inhalt", 
+      expectedDirs: ["Obsidian", "Obsidian/Plugin-Development", "Obsidian/Typescript", "TiddlyWiki", "TiddlyWiki/Typescript"]
+    },
+]
+
+describe("convert", () => {
+    it.each<TiddlyJsonFileTestData>(tiddlyJsonFileTestData)("Import tiddler hierarchy from $json_file: $label", 
+                                                            async ({json_file, toc_name, expectedDirs}) => {
+		const dirPath = path.join(__dirname, "samples");
+        const filePath = path.join(dirPath, json_file);
+		const jsonText = fs.readFileSync(filePath, "utf-8");
+        const tiddlers: Tiddler[] = JSON.parse(jsonText);
+        expect(tiddlers.length).toBeGreaterThan(0);
+        if (toc_name) expect(tiddlers).toContainEqual(expect.objectContaining({ title: toc_name }));
+        const notes = new NotesMetaData(tiddlers, toc_name);
+        notes.analyseTiddlersHierarchy();
+        if (!toc_name) {
+            for (const markdownFile of notes.notes) {
+                expect(markdownFile.filename).toEqual(`${markdownFile.title}.md`.replace(/[\/\:\\]/g, ''));
+            }
+        }
+        if (toc_name) {
+            let allExpectedDirs = [...expectedDirs || [], '.'];
+            expect(notes.directories).toEqual(expectedDirs);
+            for (const note of notes.notes) {
+                // console.log(`note: ${note.title} --> ${notes.folder(note.title)}`);
+                expect(allExpectedDirs).toContain(notes.folder(note.title))
+            }
+            for (const dir of expectedDirs || []) {
+                const parentDir = path.basename(dir)
+                for (const note of notes.notes) {
+                    if (note.title === parentDir) {
+                        expect(path.basename(notes.folder(note.title))).toBe(parentDir);
+                    }
+                }
+            }
+            expect(notes.notes).toContainEqual(expect.objectContaining({ title: toc_name }));
+        }
+        // console.log(JSON.stringify(tiddlers, null, 2));
+        // const markdownArray = convertTiddlersToObsidianMarkdown(tiddlers, toc_name);
+        // expect(markdownArray).toEqual(notes.notes);
+    })
+});
