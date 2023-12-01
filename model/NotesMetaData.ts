@@ -24,9 +24,8 @@ export class NotesMetaData {
     constructor(tiddlers: Tiddler[], toc_name?: string) {
 		this._toc_name = toc_name;
 		for (const tiddler of tiddlers) {
-			const frontMatter = `---\n`
-				+ `${tiddler.tags ? `tags: ${tiddler.tags}\n` : ''}`
-				+ `---\n`;
+			// Generate Obsidian properties only if there are tags
+			const frontMatter = `${tiddler.tags ? `---\ntags: ${tiddler.tags}\n---\n` : ''}`;
 	
 			const content = frontMatter + convertTiddlyWikiToMarkdown(tiddler.text);
 			const filename = `${tiddler.title}.md`.replace(/[\/\:\\]/g, '');
