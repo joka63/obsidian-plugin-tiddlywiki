@@ -1,4 +1,6 @@
-# Import/Export TiddlyWiki 
+# Import/Export TiddlyWiki
+
+This is an experimental Obsidian plugi-in, not yet finished or ready for productive use!!
 
 Import and export from TiddlyWiki with JSON files.
 
